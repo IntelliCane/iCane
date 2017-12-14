@@ -25,7 +25,9 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Map;
-
+/*
+This class is used by therapists to select a certain patients session data.
+ */
 public class SessionSelectActivity extends AppCompatActivity {
 
     private ListView sessionListView;
@@ -75,8 +77,15 @@ public class SessionSelectActivity extends AppCompatActivity {
         sessionRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
                 // Create object to store list of sessions
                 Map<String,Object> map = (Map<String,Object>)dataSnapshot.getValue();
+
+                if (map == null){
+                    Toast.makeText(SessionSelectActivity.this, "No Session Data", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 ArrayList<String> keys = new ArrayList<String>();
                 for (String key : map.keySet()) {
                     keys.add(key);
