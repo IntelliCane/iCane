@@ -1,6 +1,7 @@
 package project2017.intellic;
 
 import android.content.Intent;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -22,6 +23,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/*
+This activity is used by admins to associate session data with patients.
+ */
 public class AssociateSessionActivity extends AppCompatActivity {
 
     private FirebaseDatabase database;
@@ -48,6 +53,9 @@ public class AssociateSessionActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
                 break;
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(this);
+                return true;
             default:
                 break;
         }
@@ -58,6 +66,7 @@ public class AssociateSessionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_associate_session);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // Reference patient list under current Therapist user
         database = FirebaseDatabase.getInstance();
@@ -71,6 +80,7 @@ public class AssociateSessionActivity extends AppCompatActivity {
                 Map<String,Object> patientNode = (Map<String,Object>)dataSnapshot.getValue();
                 ArrayList<String> patients = new ArrayList<String>();
                 for (String key : patientNode.keySet()) {
+
                     // Use PatientID to get LastName, FirstName
                     Map<String,Object> patient = (Map<String,Object>)patientNode.get(key);
                     String patientName = patient.get("lname").toString()

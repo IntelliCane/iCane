@@ -10,12 +10,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Patterns;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -29,13 +35,16 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-
+/*
+First activity user is presented with after logging in.
+ */
 public class LoginActivity extends AppCompatActivity {
 
     private EditText editTextEmail;
     private EditText editTextPassword;
-    private Button buttonSignIN;
     private FirebaseAuth firebaseAuth;
     private ProgressDialog progressDialog;
     private FirebaseDatabase database;
@@ -45,7 +54,62 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         firebaseAuth = FirebaseAuth.getInstance();
+        editTextEmail = (EditText) findViewById(R.id.editTextEmail);
+        editTextPassword = (EditText) findViewById(R.id.editTextPassword);
+
+        // check for empty textboxes while user is entering data
+        editTextEmail.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                EditText textBox = (EditText) view;
+                String text = textBox.getText().toString();
+                if (!b){
+                    if (text.length() == 0){
+                        textBox.setError("Email can't be empty!");
+                    } else {
+                        if (!Patterns.EMAIL_ADDRESS.matcher(text).matches()){
+                            textBox.setError("Must be a valid email address!");
+                        }
+                    }
+                }
+            }
+        });
+        editTextPassword.addTextChangedListener(new TextValidator(editTextPassword) {
+            @Override
+            public void validate(TextView textView, String text) {
+                if (text.length() == 0){
+                    textView.setError("Password must not be empty!");
+                }
+            }
+        });
+
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_login, menu);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // action with ID action_logout was selected
+            case R.id.offline_mode:
+
+                Intent intent = new Intent(LoginActivity.this, SettingsActivity.class);
+                startActivity(intent);
+                //finish();
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+
+    public void goto_activity_login(View view) {setContentView(R.layout.activity_login);}
 
     public void loginPublic(View view) {
         login();
@@ -54,9 +118,7 @@ public class LoginActivity extends AppCompatActivity {
     // this method will log user into firebase
     private void login() {
 
-        editTextEmail = (EditText) findViewById(R.id.editTextEmail);
-        editTextPassword = (EditText) findViewById(R.id.editTextPassword);
-        buttonSignIN = (Button) findViewById(R.id.buttonLogin);
+
         progressDialog = new ProgressDialog(this);
         String email = editTextEmail.getText().toString();
         final String password = editTextPassword.getText().toString();
@@ -100,7 +162,7 @@ public class LoginActivity extends AppCompatActivity {
                         {
                             progressDialog.dismiss();
                             getRole();
-                            Toast.makeText(LoginActivity.this, "welcome to intelliC", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Welcome to intelliCane!", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -142,7 +204,7 @@ public class LoginActivity extends AppCompatActivity {
                 // invokes Therapist activity
                 else if(role.equals(Therapist))
                 {
-                    Intent intent = new Intent(LoginActivity.this, PatientSelectActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, TherapistActivity.class);
                     startActivity(intent);
                     finish();
                 }
@@ -157,6 +219,11 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, databaseError.getCode(), Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    public void createNewUser(View view){
+        Intent intent = new Intent(LoginActivity.this, NewUserSignupActivity.class);
+        startActivity(intent);
     }
 }
 

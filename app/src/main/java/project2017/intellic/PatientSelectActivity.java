@@ -1,6 +1,7 @@
 package project2017.intellic;
 
 import android.content.Intent;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -11,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -23,9 +25,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import static project2017.intellic.R.id.patient;
-
+/*
+This class is used by admins to select patients.
+ */
 public class PatientSelectActivity extends AppCompatActivity {
 
     private ListView patientListView;
@@ -39,6 +41,7 @@ public class PatientSelectActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         return true;
     }
 
@@ -54,6 +57,9 @@ public class PatientSelectActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
                 break;
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(this);
+                return true;
             default:
                 break;
         }
@@ -74,14 +80,21 @@ public class PatientSelectActivity extends AppCompatActivity {
         // Reference patient list under current Therapist user
         database = FirebaseDatabase.getInstance();
         DatabaseReference ref = database.getReferenceFromUrl("https://icane-41ce5.firebaseio.com/");
-        DatabaseReference patientRef = ref.child("Users").child("Therapist").child(uid).child("patients");
+        DatabaseReference patientRef = ref.child("Users").child("Therapist").child(uid).child("Patients");
 
         // Listen to track changes in data at database reference
         patientRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Create object to hold list of patients
+                Log.v("tag", "test");
                 Map<String,Object> map = (Map<String,Object>)dataSnapshot.getValue();
+
+                if (map == null){
+                    Toast.makeText(PatientSelectActivity.this, "Patient has no session data!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 ArrayList<String> patients = new ArrayList<String>();
                 for (String key : map.keySet()) {
                     // Use PatientID to get LastName, FirstName
